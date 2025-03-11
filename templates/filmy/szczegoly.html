@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ film.tytul }}</title>
+</head>
+<body>
+    <h1>{{ film.tytul }} ({{ film.rok }})</h1>
+    <p><strong>Opis:</strong> {{ film.opis|default:"Brak opisu." }}</p>
+    <p><strong>Premiera:</strong> {{ film.premiera|default:"Brak danych" }}</p>
+    <p><strong>IMDb:</strong> {{ film.imdb_pkts|default:"Brak oceny" }}</p>
+    <a href="{% url 'wszystkie' %}">Powrót do listy</a>
+</body>
+</html>
