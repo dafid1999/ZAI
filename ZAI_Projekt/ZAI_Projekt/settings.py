@@ -145,7 +145,7 @@ REST_FRAMEWORK = {
 
 # Graphene-Django
 GRAPHENE = {
-    'SCHEMA': 'zaia_project.schema.schema',
+    'SCHEMA': 'ZAI_Projekt.schema.schema',
     'MIDDLEWARE': [
         'graphql_jwt.middleware.JSONWebTokenMiddleware',
     ],
