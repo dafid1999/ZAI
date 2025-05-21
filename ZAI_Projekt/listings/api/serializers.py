@@ -19,8 +19,16 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class ListingSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
-    category = CategorySerializer()
-    tags = TagSerializer(many=True)
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='name'
+    )
+    tags = serializers.SlugRelatedField(
+        queryset=Tag.objects.all(),
+        slug_field='name',
+        many=True,
+        required=False
+    )
 
     class Meta:
         model = Listing
@@ -31,19 +39,14 @@ class ListingSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        tags_data = validated_data.pop('tags', [])
-        category_data = validated_data.pop('category', None)
+        tags = validated_data.pop('tags', [])
         listing = Listing.objects.create(**validated_data)
-
-        if category_data:
-            cat, _ = Category.objects.get_or_create(**category_data)
-            listing.category = cat
-        for t in tags_data:
-            tag, _ = Tag.objects.get_or_create(**t)
-            listing.tags.add(tag)
-        listing.author = self.context['request'].user
-        listing.save()
+        listing.tags.set(tags)
         return listing
 
     def update(self, instance, validated_data):
+        if 'category' in validated_data:
+            instance.category = validated_data.pop('category')
+        if 'tags' in validated_data:
+            instance.tags.set(validated_data.pop('tags'))
         return super().update(instance, validated_data)

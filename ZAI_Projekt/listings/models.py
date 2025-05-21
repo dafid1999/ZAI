@@ -39,7 +39,7 @@ class Listing(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listings')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='listings')
     tags = models.ManyToManyField(Tag, related_name='listings', blank=True)
-    image = models.ImageField(upload_to='listings/')
+    image = models.ImageField(upload_to='listings/', null=True, blank=True)
     favorited_by = models.ManyToManyField(User, related_name='favorites', blank=True)
 
     def __str__(self):
