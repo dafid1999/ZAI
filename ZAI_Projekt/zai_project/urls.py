@@ -1,5 +1,5 @@
 """
-URL configuration for ZAI_Projekt project.
+URL configuration for zai_project project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/
@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    path('api/users/', include('users.urls')),
 ]
 
 # Obsługa plików media w trybie deweloperskim
