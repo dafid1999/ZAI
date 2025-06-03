@@ -4,6 +4,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import status
 from listings.models import Category, Tag, Listing, Profile
 
+
 class ListingAPITestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='user1', password='pass')

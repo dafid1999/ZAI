@@ -12,10 +12,19 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class ProfileSerializer(serializers.ModelSerializer):
+    phone_number = serializers.SerializerMethodField()
+
     class Meta:
         model = Profile
         fields = ['user', 'phone_number']
         read_only_fields = ['user']
+
+    def get_phone_number(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.phone_number
+        return None
+
 
 class ListingSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'graphene_django',
     'django_filters',
+    'drf_yasg',
 
     # Projekty
     'listings',
