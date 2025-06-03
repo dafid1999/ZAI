@@ -156,3 +156,8 @@ GRAPHENE = {
         'graphql_jwt.middleware.JSONWebTokenMiddleware',
     ],
 }
+
+GRAPHQL_JWT = {
+  "JWT_ALLOW_REFRESH": True,
+  "JWT_LONG_RUNNING_REFRESH_TOKEN": True
+}

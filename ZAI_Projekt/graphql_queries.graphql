@@ -1,0 +1,257 @@
+
+# ==============================================
+# 1. Autoryzacja (JWT)
+# ==============================================
+
+# 1.1 Uzyskanie tokenu (tokenAuth)
+# ----------------------------------------------
+# Zwraca token JWT dla podanych danych logowania
+# Headers: Content-Type: application/json
+mutation {
+  tokenAuth(username: "admin", password: "admin") {
+    token
+  }
+}
+
+{
+  "Authorization": "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiZXhwIjoxNzQ4OTU1NDY3LCJvcmlnSWF0IjoxNzQ4OTU1MTY3fQ.SA1Sja__JQR0zWh_JtJB7BLUrKdkmUSmOpkMD3LJRi8"
+}
+
+
+
+# ==============================================
+# 2. Zapytania (Queries)
+# ==============================================
+
+# 2.1 Pobranie wszystkich ogłoszeń (allListings)
+# ------------------------------------------------
+query {
+  allListings {
+    id
+    title
+    description
+    price
+    status
+    createdAt
+    updatedAt
+    expiresAt
+    author {
+      username
+    }
+    category {
+      id
+      name
+    }
+    tags {
+      id
+      name
+    }
+    thumbnail
+  }
+}
+
+# 2.2 Pobranie ogłoszenia po ID (listing)
+# ------------------------------------------------
+query {
+  listing(id: 6){
+    id
+    title
+    description
+    price
+    status
+    author {
+      username
+    }
+    category {
+      id
+      name
+    }
+    tags {
+      id
+      name
+    }
+    image
+    thumbnail
+  }
+}
+
+# 2.3 Pobranie wszystkich kategorii (allCategories)
+# ------------------------------------------------
+query {
+  allCategories {
+    id
+    name
+  }
+}
+
+# 2.4 Pobranie wszystkich tagów (allTags)
+# ------------------------------------------------
+query {
+  allTags {
+    id
+    name
+  }
+}
+
+# 2.5 Pobranie danych zalogowanego użytkownika (me)
+# -------------------------------------------------
+query {
+  me {
+    phoneNumber
+    user {
+      email
+      id
+      username
+    }
+  }
+}
+
+
+# ==============================================
+# 3. Mutacje (Mutations)
+# ==============================================
+
+# 3.1 Utworzenie ogłoszenia (createListing)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN>
+mutation {
+  createListing(
+    title: "Nowy Telefon"
+    description: "Smartfon z 128GB pamięci"
+    price: 1500.00
+    categoryName: "Motoryzacja"
+    expiresAt: "2025-08-01T00:00:00Z"
+    tagNames: "tag1"
+  ) {
+    listing {
+      id
+      title
+      status
+      image
+      thumbnail
+    }
+  }
+}
+
+# 3.2 Aktualizacja ogłoszenia (updateListing)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN>
+mutation {
+  updateListing(
+    id: 6,
+    title: "Zaktualizowany Tytuł",
+    price: 1300.00,
+    status: "APPROVED"
+  ) {
+    listing {
+      id
+      title
+      price
+      status
+      updatedAt
+    }
+  }
+}
+
+# 3.3 Usunięcie ogłoszenia (deleteListing)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN>
+mutation {
+  deleteListing(id: 1) {
+    ok
+  }
+}
+
+
+# 3.4 Utworzenie kategorii (createCategory)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN_ADMIN>
+mutation {
+  createCategory(name: "Elektronika") {
+    category {
+      id
+      name
+    }
+  }
+}
+
+# 3.5 Aktualizacja kategorii (updateCategory)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN_ADMIN>
+mutation {
+  updateCategory(id: 2, name: "AGD") {
+    category {
+      id
+      name
+    }
+  }
+}
+
+# 3.6 Usunięcie kategorii (deleteCategory)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN_ADMIN>
+mutation {
+  deleteCategory(id: 1) {
+    ok
+  }
+}
+
+# 3.7 Utworzenie tagu (createTag)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN_ADMIN>
+mutation {
+  createTag(name: "Promocja") {
+    tag {
+      id
+      name
+    }
+  }
+}
+
+# 3.8 Aktualizacja tagu (updateTag)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN_ADMIN>
+mutation {
+  updateTag(id: 1, name: "Wyprzedaż") {
+    tag {
+      id
+      name
+    }
+  }
+}
+
+# 3.9 Usunięcie tagu (deleteTag)
+# ------------------------------------------------
+# Headers:
+#   Authorization: JWT <TU_TOKEN_ADMIN>
+mutation {
+  deleteTag(id: 1) {
+    ok
+  }
+}
+
+
+# 3.10 Rejestracja nowego użytkownika (registerUser)
+mutation {
+  registerUser(
+    username: "nowyuzytkownik",
+    email: "test@example.com",
+    password: "haslo123"
+  ) {
+    success
+    errors
+    user {
+      id
+      username
+      email
+    }
+  }
+}
