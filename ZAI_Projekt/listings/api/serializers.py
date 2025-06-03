@@ -19,16 +19,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class ListingSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.username')
-    category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='name'
-    )
-    tags = serializers.SlugRelatedField(
-        queryset=Tag.objects.all(),
-        slug_field='name',
-        many=True,
-        required=False
-    )
+    category = serializers.SlugRelatedField(queryset=Category.objects.all(), slug_field='name')
+    tags = serializers.SlugRelatedField(queryset=Tag.objects.all(), slug_field='name', many=True, required=False)
 
     class Meta:
         model = Listing

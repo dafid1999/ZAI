@@ -1,6 +1,10 @@
+from io import BytesIO
+from django.core.files.base import ContentFile
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from PIL import Image
+import os
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -40,6 +44,7 @@ class Listing(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='listings')
     tags = models.ManyToManyField(Tag, related_name='listings', blank=True)
     image = models.ImageField(upload_to='listings/', null=True, blank=True)
+    thumbnail = models.ImageField(upload_to='listings/thumbnails/', null=True, blank=True)
     favorited_by = models.ManyToManyField(User, related_name='favorites', blank=True)
 
     def __str__(self):
@@ -48,6 +53,39 @@ class Listing(models.Model):
     class Meta:
         ordering = ['-created_at']
         indexes = [models.Index(fields=['status']), models.Index(fields=['created_at'])]
+
+    def save(self, *args, **kwargs):
+        old = Listing.objects.filter(pk=self.pk).first() if self.pk else None
+
+        if old:
+            if old.image and self.image != old.image and os.path.isfile(old.image.path):
+                os.remove(old.image.path)
+            if old.thumbnail and os.path.isfile(old.thumbnail.path):
+                os.remove(old.thumbnail.path)
+
+        super().save(*args, **kwargs)
+
+        if self.image:
+            try:
+                img = Image.open(self.image)
+                img.thumbnail((200, 200))
+                thumb_io = BytesIO()
+                img.save(thumb_io, format=img.format)
+                img.close()
+                base, ext = os.path.splitext(os.path.basename(self.image.name))
+                thumb_filename = f"{base}_thumb{ext}"
+
+                self.thumbnail.save(thumb_filename, ContentFile(thumb_io.getvalue()), save=False)
+                super().save(update_fields=['thumbnail'])
+            except Exception as e:
+                print(f"Thumbnail generation failed: {e}")
+
+    def delete(self, *args, **kwargs):
+        if self.image and os.path.isfile(self.image.path):
+            os.remove(self.image.path)
+        if self.thumbnail and os.path.isfile(self.thumbnail.path):
+            os.remove(self.thumbnail.path)
+        super().delete(*args, **kwargs)
 
 
 class PublishedManager(models.Manager):

@@ -134,9 +134,58 @@ class ListingFilterTestCase(APITestCase):
         url = reverse('listing-list') + '?status=APPROVED'
         resp = self.client.get(url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-
         data = resp.json()
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]['status'], 'APPROVED')
-        self.assertEqual(data[0]['title'], 'Approved Ad')
+        self.assertEqual(data['count'], 1)
+        self.assertEqual(len(data['results']), 1)
+        self.assertEqual(data['results'][0]['status'], 'APPROVED')
+        self.assertEqual(data['results'][0]['title'], 'Approved Ad')
 
+
+class ListingAdvancedFilteringTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user1', password='pass')
+        self.cat1 = Category.objects.create(name='Books')
+        self.cat2 = Category.objects.create(name='Electronics')
+        self.tag = Tag.objects.create(name='Promo')
+
+        for i in range(15):
+            l = Listing.objects.create(
+                title=f"Title {i}",
+                description="Test desc",
+                price=i * 10,
+                author=self.user,
+                category=self.cat1 if i < 10 else self.cat2,
+                status='APPROVED'
+            )
+            if i % 2 == 0:
+                l.tags.add(self.tag)
+
+        url = reverse('token_obtain_pair')
+        resp = self.client.post(url, {'username': 'user1', 'password': 'pass'}, format='json')
+        self.token = resp.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+
+    def test_filter_by_category(self):
+        url = reverse('listing-list') + f'?category={self.cat2.id}'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(len(data['results']), 5)
+
+    def test_search_by_title(self):
+        url = reverse('listing-list') + '?search=Title 1'
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(any("Title 1" in item['title'] for item in resp.json()['results']))
+
+    def test_ordering_by_price_desc(self):
+        url = reverse('listing-list') + '?ordering=-price'
+        resp = self.client.get(url)
+        prices = [item['price'] for item in resp.json()['results']]
+        self.assertEqual(prices, sorted(prices, reverse=True)[:5])
+
+    def test_pagination_default(self):
+        url = reverse('listing-list')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.json()['results']), 5)
