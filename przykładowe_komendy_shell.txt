@@ -1,0 +1,76 @@
+from django.contrib.auth.models import User, Group
+from listings.models import Category, Tag, Listing, Profile
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Count, Avg
+from datetime import datetime, timedelta
+from decimal import Decimal
+
+# --- Users and Groups ---
+user = User.objects.create_user(username='shelluser', password='pass')
+mod = User.objects.create_user(username='shellmod', password='pass')
+admin = User.objects.create_user(username='shelladmin', password='pass', is_staff=True)
+
+Group.objects.get_or_create(name='user')
+Group.objects.get_or_create(name='moderators')
+Group.objects.get_or_create(name='admin')
+
+mod.groups.add(Group.objects.get(name='moderators'))
+
+# --- Profiles ---
+Profile.objects.get_or_create(user=user)
+profile = Profile.objects.get(user=user)
+profile.phone_number = '123-456-789'
+profile.save()
+
+# --- Categories and Tags ---
+cat1, _ = Category.objects.get_or_create(name='Elektronika')
+cat2, _ = Category.objects.get_or_create(name='Książki')
+tag1, _ = Tag.objects.get_or_create(name='Promocja')
+tag2, _ = Tag.objects.get_or_create(name='Okazyjnie')
+
+# --- Listings ---
+now = datetime.now()
+for i in range(1, 8):
+    listing = Listing.objects.create(
+        title=f"Produkt {i}",
+        description=f"Opis produktu {i}",
+        price=Decimal(f"{i*10}.00"),
+        author=user,
+        category=cat1 if i % 2 == 0 else cat2,
+        status='APPROVED' if i % 3 != 0 else 'PENDING',
+        expires_at=now + timedelta(days=30)
+    )
+    listing.tags.add(tag1 if i % 2 == 0 else tag2)
+    listing.save()
+
+# --- Filtering and Aggregations ---
+approved_count = Listing.objects.filter(status='APPROVED').count()
+avg_price = Listing.objects.aggregate(avg_price=Avg('price'))
+category_counts = Category.objects.annotate(count=Count('listings')).values('name', 'count')
+status_counts = Listing.objects.values('status').annotate(count=Count('id'))
+
+# --- Permissions and Modifications ---
+l1 = Listing.objects.get(pk=1)
+l1.title = 'Zmieniony tytuł 1'
+l1.save()
+
+l2 = Listing.objects.get(pk=2)
+l2.title = 'Moderator zmienił tytuł'
+l2.save()
+
+l3 = Listing.objects.get(pk=3)
+l3.title = 'Admin zmienił tytuł'
+l3.save()
+
+# --- Favoriting Listings ---
+l2.favorited_by.add(user)
+favorited_listings = Listing.objects.filter(favorited_by=user).values('id', 'title')
+
+# --- Deleting Listings ---
+l5 = Listing.objects.get(pk=5)
+l5.delete()
+
+# --- JWT Token Generation ---
+refresh = RefreshToken.for_user(user)
+access_token = str(refresh.access_token)
+refresh_token = str(refresh)
